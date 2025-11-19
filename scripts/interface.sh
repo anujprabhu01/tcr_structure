@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=interface_array
-#SBATCH --array=0-7200
+#SBATCH --array=1-{# of inputs}
 #SBATCH --output=interface_slurm/%x_%A_%a.out
 #SBATCH --error=interface_slurm/%x_%A_%a.err
 #SBATCH --ntasks=1
@@ -21,9 +21,9 @@ export ROSETTA_BIN="/scratch/ggrama/rosetta.source.release-371/main/source/bin"
 export PATH="$ROSETTA_BIN:$PATH"
 
 # === Input/output directories ===
-FINAL_DIR="/scratch/ggrama/recomb/generated/interface_pdbs"
-SCORES_DIR="/scratch/ggrama/recomb/generated/interface_scores"
-LOGS_DIR="/scratch/ggrama/recomb/generated/interface_logs"
+FINAL_DIR="/scratch/{USER}/alphafold/interface_pdbs"
+SCORES_DIR="/scratch/{USER}/alphafold/interface_scores"
+LOGS_DIR="/scratch/{USER}/alphafold/interface_logs"
 
 mkdir -p "$SCORES_DIR" "$LOGS_DIR" interface_slurm
 
@@ -33,7 +33,7 @@ mapfile -t PDBS < <(find "$FINAL_DIR" -maxdepth 1 -type f -name "*.pdb" | sort)
 NUM_FILES=${#PDBS[@]}
 
 if [[ $SLURM_ARRAY_TASK_ID -ge $NUM_FILES ]]; then
-    echo "⚠️ No file for index ${SLURM_ARRAY_TASK_ID} (only $NUM_FILES files)"
+    echo "No file for index ${SLURM_ARRAY_TASK_ID} (only $NUM_FILES files)"
     exit 0
 fi
 
@@ -45,13 +45,13 @@ LOG_OUT="${LOGS_DIR}/${BASE}.log"
 
 # === Skip if already scored ===
 if [[ -f "$SCORE_OUT" ]]; then
-    echo "⏩ Already scored: $BASE"
+    echo "Already scored: $BASE"
     exit 0
 fi
 
 # === Check existence ===
 if [[ ! -f "$PDB_PATH" ]]; then
-    echo "❌ PDB not found: $PDB_PATH"
+    echo "PDB not found: $PDB_PATH"
     exit 1
 fi
 
@@ -71,9 +71,9 @@ echo "Log output:   $LOG_OUT"
     > "$LOG_OUT" 2>&1
 
 if [[ $? -eq 0 ]]; then
-    echo "✅ Finished successfully: $BASE"
+    echo "Finished successfully: $BASE"
 else
-    echo "❌ InterfaceAnalyzer failed: $BASE (check log)"
+    echo "InterfaceAnalyzer failed: $BASE (check log)"
 fi
 
 echo "=== JOB DONE ==="
