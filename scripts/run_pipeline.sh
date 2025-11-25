@@ -26,6 +26,7 @@ mkdir -p "$TARGETS_DIR"
 mkdir -p "$USER_OUTPUTS_DIR"
 mkdir -p "$PREDICTIONS_DIR"
 mkdir -p "$RELAXED_DIR"
+mkdir -p "$RELABELED_DIR"
 mkdir -p "$INTERFACE_SCORES_DIR"
 mkdir -p "$INTERFACE_LOGS_DIR"
 mkdir -p "$SLURM_LOGS_DIR"
@@ -168,15 +169,70 @@ RELAX_JOB_ID=$(sbatch --parsable \
 echo "Submitted relaxation job: $RELAX_JOB_ID (depends on $PREDICT_JOB_ID)"
 
 ###############################################################################
-# STEP 5: Submit interface analysis jobs (depends on relaxation)
+# STEP 5: Submit relabeling jobs (depends on relaxation)
 ###############################################################################
 
 echo ""
-echo "Step 5: Submitting interface analysis jobs..."
+echo "Step 5: Submitting chain relabeling jobs..."
+
+RELABEL_JOB_ID=$(sbatch --parsable \
+    --job-name=tcr_relabel \
+    --dependency=afterok:$RELAX_JOB_ID \
+    --account="$SLURM_ACCOUNT" \
+    --partition="$SLURM_PARTITION" \
+    --qos="$SLURM_QOS" \
+    --array=0-$((NUM_TARGETS*10-1)) \
+    --ntasks=1 \
+    --cpus-per-task="$RELABEL_CPUS" \
+    --mem="$RELABEL_MEM" \
+    --time="$RELABEL_TIME" \
+    --output="$SLURM_LOGS_DIR/relabel_%A_%a.out" \
+    --error="$SLURM_LOGS_DIR/relabel_%A_%a.err" \
+    --export=ALL \
+    --wrap="
+        source $SCRIPT_DIR/00_config.sh
+        load_conda_env
+        
+        PDB_FILES=(\$(find $RELAXED_DIR -name '*_relaxed*.pdb' | sort))
+        
+        if [ \$SLURM_ARRAY_TASK_ID -ge \${#PDB_FILES[@]} ]; then
+            echo 'No PDB file for task \$SLURM_ARRAY_TASK_ID'
+            exit 0
+        fi
+        
+        PDB_FILE=\${PDB_FILES[\$SLURM_ARRAY_TASK_ID]}
+        BASENAME=\$(basename \"\$PDB_FILE\" .pdb)
+        PREFIX=\${BASENAME%%_run_*}
+        
+        # Find corresponding targets.tsv
+        TARGETS_TSV=\"$USER_OUTPUTS_DIR/\$PREFIX/targets.tsv\"
+        
+        if [ ! -f \"\$TARGETS_TSV\" ]; then
+            echo 'ERROR: targets.tsv not found for \$PREFIX'
+            exit 1
+        fi
+        
+        OUTPUT_FILE=\"$RELABELED_DIR/\${BASENAME}_relabeled.pdb\"
+        
+        python $RELABEL_SCRIPT \
+            --pdb_file \"\$PDB_FILE\" \
+            --targets_tsv \"\$TARGETS_TSV\" \
+            --output_file \"\$OUTPUT_FILE\" \
+            --verbose
+    ")
+
+echo "Submitted relabeling job: $RELABEL_JOB_ID (depends on $RELAX_JOB_ID)"
+
+###############################################################################
+# STEP 6: Submit interface analysis jobs (depends on relabeling)
+###############################################################################
+
+echo ""
+echo "Step 6: Submitting interface analysis jobs..."
 
 INTERFACE_JOB_ID=$(sbatch --parsable \
     --job-name=tcr_interface \
-    --dependency=afterok:$RELAX_JOB_ID \
+    --dependency=afterok:$RELABEL_JOB_ID \
     --account="$SLURM_ACCOUNT" \
     --partition="$SLURM_PARTITION" \
     --qos="$SLURM_QOS" \
@@ -191,7 +247,7 @@ INTERFACE_JOB_ID=$(sbatch --parsable \
     --wrap="
         source $SCRIPT_DIR/00_config.sh
         
-        PDB_FILES=(\$(find $RELAXED_DIR -name '*_relaxed*.pdb' | sort))
+        PDB_FILES=(\$(find $RELABELED_DIR -name '*_relabeled.pdb' | sort))
         
         if [ \$SLURM_ARRAY_TASK_ID -ge \${#PDB_FILES[@]} ]; then
             echo 'No PDB file for task \$SLURM_ARRAY_TASK_ID'
@@ -203,7 +259,7 @@ INTERFACE_JOB_ID=$(sbatch --parsable \
         bash $INTERFACE_SCRIPT \"\$PDB_FILE\" \"$ROSETTA_BIN\" \"$INTERFACE_SCORES_DIR\" \"$INTERFACE_LOGS_DIR\"
     ")
 
-echo "Submitted interface analysis job: $INTERFACE_JOB_ID (depends on $RELAX_JOB_ID)"
+echo "Submitted interface analysis job: $INTERFACE_JOB_ID (depends on $RELABEL_JOB_ID)"
 
 ###############################################################################
 # Summary
@@ -217,7 +273,8 @@ echo "Job Chain:"
 echo "  1. Setup:     $SETUP_JOB_ID"
 echo "  2. Predict:   $PREDICT_JOB_ID"
 echo "  3. Relax:     $RELAX_JOB_ID"
-echo "  4. Interface: $INTERFACE_JOB_ID"
+echo "  4. Relabel:   $RELABEL_JOB_ID"
+echo "  5. Interface: $INTERFACE_JOB_ID"
 echo ""
 echo "Monitor jobs with: squeue -u \$USER"
 echo "Check logs in: $SLURM_LOGS_DIR"
@@ -227,5 +284,6 @@ echo "  Targets:          $TARGETS_DIR"
 echo "  User Outputs:     $USER_OUTPUTS_DIR"
 echo "  Predictions:      $PREDICTIONS_DIR"
 echo "  Relaxed:          $RELAXED_DIR"
+echo "  Relabeled:        $RELABELED_DIR"
 echo "  Interface Scores: $INTERFACE_SCORES_DIR"
 echo "========================================"
