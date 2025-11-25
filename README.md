@@ -9,7 +9,8 @@ This pipeline takes a CSV file with TCR information and automatically:
 2. Sets up AlphaFold inputs
 3. Predicts structures using TCRdock (modified AlphaFold pipeline)
 4. Relaxes structures with Rosetta
-5. Analyzes interfaces with Rosetta InterfaceAnalyzer
+5. Relabels chains for InterfaceAnalyzer (MHC+Peptide→A, TCRα+TCRβ→B)
+6. Analyzes interfaces with Rosetta InterfaceAnalyzer
 
 ## Requirements
 
@@ -17,7 +18,7 @@ This pipeline takes a CSV file with TCR information and automatically:
 - [Environment setup](./env/)
 - TCRdock (https://github.com/piercelab/TCRdock)
 - AlphaFold database (complete steps in "Obtaining Genetic Databases" section [here](https://github.com/google-deepmind/alphafold3/blob/main/docs/installation.md))
-- Rosetta [here](https://rosettacommons.org/software/download/) as a non-commerical user (version 3.14). 
+- Rosetta [here](https://rosettacommons.org/software/download/) as a non-commercial user (version 3.14). 
 Required binaries:
 `relax.linuxgccrelease`
 `InterfaceAnalyzer.linuxgccrelease`
@@ -48,14 +49,11 @@ git clone <repository_url>
 cd tcr-pipeline
 ```
 
-2. Ensure all scripts are executable:
+2. Setup environment [see here](./env/)
+
+3. Ensure all scripts are executable:
 ```bash
 chmod +x *.sh
-```
-
-3. Install Python dependencies:
-```bash
-pip install pandas
 ```
 
 ## Configuration
@@ -127,6 +125,9 @@ ls $WORK_DIR/slurm_logs/predict_*.out
 # Relaxation logs
 ls $WORK_DIR/slurm_logs/relax_*.out
 
+# Relabeling logs
+ls $WORK_DIR/slurm_logs/relabel_*.out
+
 # Interface analysis logs
 ls $WORK_DIR/slurm_logs/interface_*.out
 ```
@@ -139,6 +140,7 @@ $WORK_DIR/
 ├── user_outputs/         # AlphaFold setup outputs
 ├── predictions/          # AlphaFold predicted structures
 ├── relaxed/             # Rosetta-relaxed structures
+├── relabeled/           # Chain-relabeled structures (A/B format)
 ├── interface_scores/     # Interface analysis scores
 ├── interface_logs/       # Interface analysis logs
 └── slurm_logs/          # SLURM job logs
@@ -171,9 +173,17 @@ $WORK_DIR/
 - Output: Relaxed structures in `relaxed/`
 - Uses Rosetta relax protocol
 
-### Step 5: Interface Analysis
-- Script: `05_interface_analysis.sh`
+### Step 5: Chain Relabeling
+- Script: `04b_relabel_chains.py`
 - Input: Relaxed structures
+- Output: Relabeled structures in `relabeled/`
+- Purpose: Converts AlphaFold chain labels to A/B format for InterfaceAnalyzer
+  - Chain A: MHC + Peptide
+  - Chain B: TCRα + TCRβ
+
+### Step 6: Interface Analysis
+- Script: `05_interface_analysis.sh`
+- Input: Relabeled structures
 - Output: Interface metrics in `interface_scores/`
 - Uses Rosetta InterfaceAnalyzer
 
@@ -196,6 +206,10 @@ Ensure all required software is installed:
 ```bash
 # Check Python
 python --version
+
+# Check Python packages
+python -c "import pandas"
+python -c "from Bio.PDB import PDBParser"
 
 # Check if Rosetta binaries exist
 ls $ROSETTA_BIN/relax.linuxgccrelease
@@ -222,13 +236,21 @@ ls $TCRDOCK_PATH/run_prediction.py
    - Check if structures have proper format
    - Review relaxation/interface logs
 
+4. **Relabeling fails**
+   - Ensure BioPython is installed: `pip install biopython`
+   - Check that targets.tsv exists for each structure
+   - Verify relaxed PDB files are valid
+
 ## Resource Recommendations
 
 Based on typical usage:
-- **Setup**: 4 CPUs, 16GB RAM, 30 min
-- **Prediction**: 4 CPUs, 32GB RAM, 1 GPU, 30 min
-- **Relaxation**: 4 CPUs, 16GB RAM, 30 min
-- **Interface**: 4 CPUs, 32GB RAM, 15 min
+- **Setup**: 4 CPUs, 16GB RAM, 2 min
+- **Prediction**: 4 CPUs, 32GB RAM, 1 GPU, 5 min
+- **Relaxation**: 4 CPUs, 16GB RAM, 5 min
+- **Relabeling**: 2 CPUs, 8GB RAM, 3 min
+- **Interface**: 4 CPUs, 32GB RAM, 5 min
+
+Total pipeline time: ~20 minutes per tcr
 
 Adjust in `00_config.sh` based on your system and data.
 
@@ -264,8 +286,14 @@ bash 04_relax_structure.sh \
     relaxed/
 
 # Step 5
+python 04b_relabel_chains.py \
+    --pdb_file relaxed/0_run_model_2_ptm_relaxed.pdb \
+    --targets_tsv user_outputs/0/targets.tsv \
+    --output_file relabeled/0_run_model_2_ptm_relaxed_relabeled.pdb
+
+# Step 6
 bash 05_interface_analysis.sh \
-    relaxed/0_run_model_2_ptm_relaxed.pdb \
+    relabeled/0_run_model_2_ptm_relaxed_relabeled.pdb \
     /path/to/rosetta/bin \
     interface_scores/ \
     interface_logs/
@@ -277,17 +305,6 @@ To customize the pipeline:
 1. Modify individual scripts (01-05) for specific needs
 2. Adjust resource allocations in `00_config.sh`
 3. Change SLURM parameters in `run_pipeline.sh`
-
-## Citation
-
-If you use this pipeline, please cite:
-- TCRdock: [relevant paper]
-- AlphaFold: Jumper et al. (2021) Nature
-- Rosetta: Leaver-Fay et al. (2011) Methods Enzymol
-
-## License
-
-[Your license here]
 
 ## Support
 
