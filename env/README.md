@@ -30,7 +30,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch/{USERID}/tcrdock_env/lib
 
 Make it executable:
 ```bash
-chmod +x /scratch/ggrama/cse_project/tcrdock_env/activate.sh
+chmod +x /scratch/{USERID}/tcrdock_env/activate.sh
 ```
 
 ## 5. Activate the GPU environment in scripts
