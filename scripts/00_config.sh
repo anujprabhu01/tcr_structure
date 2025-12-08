@@ -67,8 +67,17 @@ export CONDA_ENV_PATH="/path/to/your/MAMBA/env" #mamba envs are more compatible 
 
 # Function to load conda environment
 load_conda_env() {
-    module load mamba/latest 2>/dev/null || true
-    source activate "$CONDA_ENV_PATH" 2>/dev/null || mamba activate "$CONDA_ENV_PATH"
+    # Clear Python paths
+    unset PYTHONPATH
+    unset PYTHONHOME
+    
+    # Directly set up the environment
+    export PATH="/path/to/your/MAMBA/env/bin:$PATH"
+    source /path/to/your/activate.sh
+    
+    # Verify
+    echo "Python: $(which python)"
+    python --version
 }
 
 # Function to load CUDA (for prediction step)
