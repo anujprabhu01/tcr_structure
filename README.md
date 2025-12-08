@@ -17,7 +17,7 @@ This pipeline takes a CSV file with TCR information and automatically:
 ### Software Dependencies
 - [Environment setup](./env/)
 - TCRdock (https://github.com/phbradley/TCRdock)
-- AlphaFold database (complete steps in "Obtaining Genetic Databases" section [here](https://github.com/google-deepmind/alphafold3/blob/main/docs/installation.md))
+- AlphaFold database (complete steps in "Obtaining Genetic Databases" section [here](https://github.com/google-deepmind/alphafold))
 - Rosetta [here](https://rosettacommons.org/software/download/) as a non-commercial user (version 3.14). 
 Required binaries:
 `relax.linuxgccrelease`
