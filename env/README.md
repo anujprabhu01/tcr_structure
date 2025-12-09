@@ -41,8 +41,3 @@ Save and exit, then make it executable:
 ```bash
 chmod +x /path/to/tcrdock_env/activate.sh
 ```
-
-Run, 
-```bash
-source /path/to/tcrdock_env/activate.sh/activate.sh
-```
