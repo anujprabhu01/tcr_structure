@@ -20,14 +20,16 @@ if [ ! -f "$TARGET_FILE" ]; then
     exit 1
 fi
 
-# Extract run ID (the directory containing targets.tsv)
-RUN_ID=$(basename "$(dirname "$TARGET_FILE")")   # e.g., T00000
+# Determine run ID from containing directory name
+RUN_ID=$(basename "$(dirname "$TARGET_FILE")")
 
-# Use global prediction directory from config
+# Predictions directory is ALWAYS under the global work directory,
+# never infer it by rewriting $USER_OUTPUTS_DIR
 PRED_DIR="${PREDICTIONS_DIR}/${RUN_ID}"
 mkdir -p "$PRED_DIR"
 
-echo "Running prediction for: $RUN_ID"
+echo "Running prediction for RUN_ID: $RUN_ID"
+echo "Output directory: $PRED_DIR"
 
 python "$TCRDOCK_PATH/run_prediction.py" \
     --targets "$TARGET_FILE" \
@@ -35,4 +37,4 @@ python "$TCRDOCK_PATH/run_prediction.py" \
     --model_names model_2_ptm \
     --data_dir "$AF_DATA_DIR"
 
-echo "Prediction complete for: $RUN_ID"
+echo "Prediction complete for RUN_ID: $RUN_ID"
