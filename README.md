@@ -46,7 +46,7 @@ GILGFVFTL,HLA-A*02:01,TRAV12-1,TRAJ33,CVVNGGFGNVLHC,TRBV7-2,TRBJ2-7,CASSLAPGTGEL
 1. Clone this repository:
 ```bash
 git clone https://github.com/gloriagrama/tcr_structure.git
-cd tcr-pipeline
+cd tcr_structure
 ```
 
 2. Setup environment [see here](./env/)
