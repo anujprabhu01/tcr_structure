@@ -20,20 +20,19 @@ if [ ! -f "$TARGET_FILE" ]; then
     exit 1
 fi
 
-BASENAME=$(basename "$(dirname "$TARGET_FILE")")
-PARENT_DIR=$(dirname "$TARGET_FILE")
+# Extract run ID (the directory containing targets.tsv)
+RUN_ID=$(basename "$(dirname "$TARGET_FILE")")   # e.g., T00000
 
-# Create predictions directory parallel to user_outputs
-PRED_DIR="${PARENT_DIR/$USER_OUTPUTS_DIR/predictions}"
-PRED_DIR=$(echo "$PRED_DIR" | sed "s|user_outputs|predictions|")
+# Use global prediction directory from config
+PRED_DIR="${PREDICTIONS_DIR}/${RUN_ID}"
 mkdir -p "$PRED_DIR"
 
-echo "Running prediction for: $BASENAME"
+echo "Running prediction for: $RUN_ID"
 
 python "$TCRDOCK_PATH/run_prediction.py" \
     --targets "$TARGET_FILE" \
-    --outfile_prefix "$PRED_DIR/${BASENAME}_run" \
+    --outfile_prefix "$PRED_DIR/${RUN_ID}_run" \
     --model_names model_2_ptm \
     --data_dir "$AF_DATA_DIR"
 
-echo "Prediction complete for: $BASENAME"
+echo "Prediction complete for: $RUN_ID"
