@@ -118,10 +118,17 @@ PREDICT_JOB_ID=$(sbatch --parsable \
         source $SCRIPT_DIR/00_config.sh
         load_conda_env
         load_cuda
-        
-        TARGET_FILES=(\$(find $USER_OUTPUTS_DIR -name 'targets.tsv' | sort))
+
+        # SAFELY list the real target files only:
+        # user_outputs/<RUN_ID>/targets.tsv
+        TARGET_FILES=(\$(find \"$USER_OUTPUTS_DIR\" -mindepth 2 -maxdepth 2 -name 'targets.tsv' | sort))
+
+        # Select correct target file by SLURM array index
         TARGET_FILE=\${TARGET_FILES[\$SLURM_ARRAY_TASK_ID]}
-        
+
+        echo \"Predict job running on TARGET_FILE: \$TARGET_FILE\"
+
+        # Run prediction script
         bash $PREDICT_SCRIPT \"\$TARGET_FILE\" \"$TCRDOCK_PATH\" \"$AF_DATA_DIR\" \"$USER_OUTPUTS_DIR\"
     ")
 
