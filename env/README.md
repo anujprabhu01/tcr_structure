@@ -37,7 +37,12 @@ Paste this inside:
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/tcrdock_env/lib
 ```
 
-Save and exit (Ctrl+O, Enter, Ctrl+X), then make it executable:
+Save and exit, then make it executable:
 ```bash
 chmod +x /path/to/tcrdock_env/activate.sh
+```
+
+Run, 
+```bash
+source /path/to/tcrdock_env/activate.sh/activate.sh
 ```
