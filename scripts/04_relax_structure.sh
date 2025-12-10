@@ -25,7 +25,7 @@ BASE=$(basename "$PDB_FILE" .pdb)
 
 echo "Relaxing: $PDB_FILE"
 
-"$ROSETTA_BIN/relax.linuxgccrelease" \
+"$ROSETTA_BIN/relax.static.linuxgccrelease" \
     -s "$PDB_FILE" \
     -relax:default_repeats 5 \
     -nstruct 1 \

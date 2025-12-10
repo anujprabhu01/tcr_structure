@@ -34,7 +34,7 @@ fi
 
 echo "Running InterfaceAnalyzer on: $PDB_FILE"
 
-"$ROSETTA_BIN/InterfaceAnalyzer.linuxgccrelease" \
+"$ROSETTA_BIN/InterfaceAnalyzer.static.linuxgccrelease" \
     -s "$PDB_FILE" \
     -interface A_B \
     -ignore_unrecognized_res \
