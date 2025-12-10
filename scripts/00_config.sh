@@ -7,26 +7,26 @@
 ###############################################################################
 
 # Input CSV file containing TCR data (required columns: Peptide, HLA, Va, Ja, CDR3a, Vb, Jb, CDR3b)
-export INPUT_CSV="/path/to/your/input.csv"
+export INPUT_CSV="/scratch/adprabh1/tcr_structure/data/curry_hlaA_02_01_test.csv"
 
 # Main working directory where all outputs will be stored
-export WORK_DIR="/path/to/your/working_directory"
+export WORK_DIR="/scratch/adprabh1/tcr_predictions_output"
 
 # TCRdock installation path
-export TCRDOCK_PATH="/path/to/TCRdock"
+export TCRDOCK_PATH="/scratch/adprabh1/TCRdock"
 
 # AlphaFold data directory
-export AF_DATA_DIR="/path/to/alphafold_data"
+export AF_DATA_DIR="/scratch/adprabh1/alphafold_databases"
 
 # Rosetta binary directory
-export ROSETTA_BIN="/path/to/rosetta/bin"
+export ROSETTA_BIN="/scratch/adprabh1/rosetta.binary.linux.release-371/main/source/bin"
 
 ###############################################################################
 # SLURM Configuration
 ###############################################################################
 
 # Account and partition settings
-export SLURM_ACCOUNT="your_account"
+export SLURM_ACCOUNT="grp_hlee314"
 export SLURM_PARTITION="htc"
 export SLURM_QOS="public"
 
@@ -63,7 +63,7 @@ export MHC_CLASS=1
 # Environment setup (modify if needed)
 ###############################################################################
 
-export CONDA_ENV_PATH="/path/to/your/MAMBA/env" #mamba envs are more compatible with sol
+export CONDA_ENV_PATH="/scratch/adprabh1/tcrdock_env" #mamba envs are more compatible with sol
 
 # Function to load conda environment
 load_conda_env() {
@@ -72,8 +72,8 @@ load_conda_env() {
     unset PYTHONHOME
     
     # Directly set up the environment
-    export PATH="/path/to/your/MAMBA/env/bin:$PATH"
-    source /path/to/your/activate.sh
+    export PATH="/scratch/adprabh1/tcrdock_env/bin:$PATH"
+    source /scratch/adprabh1/tcrdock_env/activate.sh
     
     # Verify
     echo "Python: $(which python)"
