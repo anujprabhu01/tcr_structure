@@ -24,3 +24,5 @@ PDB_FILE=${PDB_FILES[$SLURM_ARRAY_TASK_ID]}
 
 bash $INTERFACE_SCRIPT "$PDB_FILE" "$ROSETTA_BIN" "/scratch/adprabh1/tcr_predictions_output/interface_scores" "/scratch/adprabh1/tcr_predictions_output/interface_logs"
 
+
+

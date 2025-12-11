@@ -29,3 +29,5 @@ OUTPUT_FILE="/scratch/adprabh1/tcr_predictions_output/relabeled/${BASENAME}_rela
 
 python $RELABEL_SCRIPT --pdb_file "$PDB_FILE" --targets_tsv "$TARGETS_TSV" --output_file "$OUTPUT_FILE" --verbose
 
+
+
