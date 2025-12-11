@@ -33,24 +33,24 @@ export SLURM_QOS="public"
 # Resource allocation for each step
 export SETUP_CPUS=4
 export SETUP_MEM="16G"
-export SETUP_TIME="00:02:00"
+export SETUP_TIME="00:10:00"
 
 export PREDICT_CPUS=4
 export PREDICT_MEM="32G"
-export PREDICT_TIME="00:30:00"
+export PREDICT_TIME="04:00:00"
 export PREDICT_GPU=1
 
 export RELAX_CPUS=4
 export RELAX_MEM="16G"
-export RELAX_TIME="00:30:00"
+export RELAX_TIME="01:00:00"
 
 export RELABEL_CPUS=2
 export RELABEL_MEM="8G"
-export RELABEL_TIME="00:03:00"
+export RELABEL_TIME="00:10:00"
 
 export INTERFACE_CPUS=4
 export INTERFACE_MEM="32G"
-export INTERFACE_TIME="00:05:00"
+export INTERFACE_TIME="00:15:00"
 
 ###############################################################################
 # OPTIONAL: Pipeline parameters
