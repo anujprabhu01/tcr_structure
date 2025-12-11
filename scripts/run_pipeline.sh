@@ -101,7 +101,7 @@ echo "Step 3: Submitting AlphaFold prediction jobs..."
 
 PREDICT_JOB_ID=$(sbatch --parsable \
     --job-name=tcr_predict \
-    --dependency=afterok:$SETUP_JOB_ID \
+    --dependency=afterany:$SETUP_JOB_ID \
     --account="$SLURM_ACCOUNT" \
     --partition="$SLURM_PARTITION" \
     --qos="$SLURM_QOS" \
@@ -146,7 +146,7 @@ echo "Step 4: Submitting Rosetta relaxation jobs..."
 
 RELAX_JOB_ID=$(sbatch --parsable \
     --job-name=tcr_relax \
-    --dependency=afterok:$PREDICT_JOB_ID \
+    --dependency=afterany:$PREDICT_JOB_ID \
     --account="$SLURM_ACCOUNT" \
     --partition="$SLURM_PARTITION" \
     --qos="$SLURM_QOS" \
@@ -184,7 +184,7 @@ echo "Step 5: Submitting chain relabeling jobs..."
 
 RELABEL_JOB_ID=$(sbatch --parsable \
     --job-name=tcr_relabel \
-    --dependency=afterok:$RELAX_JOB_ID \
+    --dependency=afterany:$RELAX_JOB_ID \
     --account="$SLURM_ACCOUNT" \
     --partition="$SLURM_PARTITION" \
     --qos="$SLURM_QOS" \
@@ -239,7 +239,7 @@ echo "Step 6: Submitting interface analysis jobs..."
 
 INTERFACE_JOB_ID=$(sbatch --parsable \
     --job-name=tcr_interface \
-    --dependency=afterok:$RELABEL_JOB_ID \
+    --dependency=afterany:$RELABEL_JOB_ID \
     --account="$SLURM_ACCOUNT" \
     --partition="$SLURM_PARTITION" \
     --qos="$SLURM_QOS" \
